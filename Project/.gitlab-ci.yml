@@ -1,0 +1,35 @@
+image: sbtscala/scala-sbt:eclipse-temurin-jammy-21.0.2_13_1.10.4_2.13.15
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - when: always
+
+stages:
+  - build
+  - test
+
+variables:
+  SBT_OPTS: "-Xmx1G"
+  DOCKER_HOST: "tcp://docker:2375"
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - sbt clean update
+
+build:
+  stage: build
+  script:
+    - sbt "scalafmtCheckAll; compile"
+
+test:
+  stage: test
+  services:
+    - name: docker:dind
+      command: [ "--tls=false" ]
+  tags:
+    - dind
+  script:
+    - sbt test

@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgresdb:
+    image: postgres:13
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass1234
+      PGDATA: /data/postgres
+      POSTGRES_DB: network
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/data/postgres
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  network:
+    build:
+      context: ./target/docker/stage
+      dockerfile: Dockerfile
+    container_name: network-project
+    environment:
+      DB_URL: postgresdb
+      DB_USER: postgres
+      DB_PASS: pass1234
+      DB_NAME: network
+    ports:
+      - "1234:1234"
+    depends_on:
+      - postgresdb
+volumes:
+  postgres:
